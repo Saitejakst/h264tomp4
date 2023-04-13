@@ -1,22 +1,25 @@
-import java.util.concurrent.TimeUnit
-import org.apache.commons.exec.CommandLine
-import org.apache.commons.exec.DefaultExecutor
-import org.apache.commons.exec.PumpStreamHandler
+import java.io.*
+import org.apache.commons.io.IOUtils
 
-def flowFile = session.get()
-if(!flowFile) return
+flowFile = session.get()
 
-def h264FilePath = flowFile.getAttribute('filepath')
-def mp4FilePath = h264FilePath.replace('.h264', '.mp4')
+if (!flowFile) {
+    return
+}
 
-def cmdLine = CommandLine.parse('/bin/bash')
-cmdLine.addArgument('-c')
-cmdLine.addArgument("ffmpeg -i ${h264FilePath} -codec copy ${mp4FilePath}")
+def command = ['/bin/bash', '-c', 'ffmpeg -i ' + flowFile.getAttribute('filename') + ' -codec copy ' + flowFile.getAttribute('filename').replaceAll(/\.h264$/, '.mp4')]
 
-def executor = new DefaultExecutor()
-def pump = new PumpStreamHandler()
-executor.setStreamHandler(pump)
+def process = new ProcessBuilder(command).redirectErrorStream(true).start()
 
-executor.execute(cmdLine)
+process.waitFor()
 
-session.transfer(flowFile, REL_SUCCESS)
+def output = IOUtils.toString(process.getInputStream(), 'UTF-8')
+def error = IOUtils.toString(process.getErrorStream(), 'UTF-8')
+
+if (error) {
+    flowFile = session.penalize(flowFile)
+    session.transfer(flowFile, REL_FAILURE)
+} else {
+    flowFile = session.putAttribute(flowFile, 'filename', flowFile.getAttribute('filename').replaceAll(/\.h264$/, '.mp4'))
+    session.transfer(flowFile, REL_SUCCESS)
+}
