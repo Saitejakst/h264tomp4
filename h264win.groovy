@@ -1,7 +1,7 @@
 import java.io.*
 import org.apache.commons.io.*
 
-def ffMpegPath = "C:\\ffmpeg\\bin\\ffmpeg.exe"
+def ffMpegPath = "C:\Users\Z038804\Downloads\applications\ffmpeg-master-latest-win64-gpl\bin"
 
 def flowFile = session.get()
 
