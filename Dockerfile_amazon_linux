@@ -1,0 +1,17 @@
+FROM amazonlinux:latest
+
+# Update the package repositories
+RUN yum -y update
+
+# Install the necessary packages
+RUN yum -y install epel-release && \
+    yum -y install ffmpeg ffmpeg-devel
+
+# Set the working directory
+WORKDIR /app
+
+# Copy your application files to the container
+COPY . /app
+
+# Run your application
+CMD ["/bin/bash"]
