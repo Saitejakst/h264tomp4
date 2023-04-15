@@ -1,0 +1,4 @@
+git clone https://github.com/bytedeco/javacpp-presets.git
+cd javacpp-presets/ffmpeg
+mvn package
+cd target
